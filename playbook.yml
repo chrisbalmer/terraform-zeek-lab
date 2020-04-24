@@ -1,0 +1,5 @@
+- name: Zeek
+  hosts: all
+  tasks:
+    - name: Test
+      ping:

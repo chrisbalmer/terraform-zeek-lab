@@ -98,3 +98,8 @@ variable "op_workstation_login" {
   description = "Login for the workstation with the SSH key."
   default     = "ops-workstation-1"
 }
+
+variable "ansible_hostkey_checking" {
+  description = "Whether or not to enable strict host key checking."
+  default     = "no"
+}

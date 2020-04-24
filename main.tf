@@ -1,3 +1,29 @@
+terraform {
+  required_providers {
+    ansible = {
+      source  = "github.com/nbering/terraform-provider-ansible"
+      version = "v1.0.3"
+    }
+
+    dns = {
+      version = "2.2"
+    }
+
+    onepassword = {
+      source  = "github.com/anasinnyk/terraform-provider-1password"
+      version = "0.5"
+    }
+
+    template = {
+      version = "2.1"
+    }
+
+    vsphere = {
+      version = "1.11.0"
+    }
+  }
+}
+
 provider "onepassword" {
   subdomain = var.op_subdomain
 }
@@ -7,7 +33,6 @@ provider "vsphere" {
   password             = data.onepassword_item_login.vcenter.password
   vsphere_server       = var.vsphere_server
   allow_unverified_ssl = true
-  version              = "1.11.0"
 }
 
 provider "dns" {
@@ -17,7 +42,6 @@ provider "dns" {
     key_algorithm = [for field in [for section in data.onepassword_item_login.ipa.section : section if section["name"] == ""][0].field : field if field["name"] == "algorithm"][0]["string"]
     key_secret    = data.onepassword_item_login.ipa.password
   }
-  version = "2.2"
 }
 
 module "servers" {
@@ -69,6 +93,7 @@ resource "ansible_host" "servers" {
   inventory_hostname = "${module.servers.vm_name[count.index]}.${var.vm_domain_name}"
   groups             = var.ansible_groups
   vars = {
-    ansible_user = data.onepassword_item_login.vm.username
+    ansible_user            = data.onepassword_item_login.vm.username
+    ansible_ssh_common_args = "-o StrictHostKeyChecking=${var.ansible_hostkey_checking}"
   }
 }

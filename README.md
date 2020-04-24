@@ -4,8 +4,9 @@ Lab environment for trying new Zeek configurations. This requires the vSphere po
 
 ## Tasks
 
-- [ ] Pull out variables
+- [X] Pull out variables
 - [ ] Build out Ansible playbook for lab config
+- [ ] Look at the [Ansible provisioner](https://github.com/jonmorehouse/terraform-provisioner-ansible) as a possible alternative
 
 ## Requirements
 
