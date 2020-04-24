@@ -2,30 +2,6 @@ provider "onepassword" {
   subdomain = var.op_subdomain
 }
 
-data "onepassword_vault" "op_homelab" {
-  name = "homelab"
-}
-
-data "onepassword_item_login" "vcenter" {
-  name  = "ops-vcenter-1"
-  vault = data.onepassword_vault.op_homelab.name
-}
-
-data "onepassword_item_login" "ipa" {
-  name  = "IPA_TERRAFORM_DNS_KEY"
-  vault = data.onepassword_vault.op_homelab.name
-}
-
-data "onepassword_item_login" "workstation" {
-  name  = "ops-workstation-1"
-  vault = data.onepassword_vault.op_homelab.name
-}
-
-data "onepassword_item_login" "zeek" {
-  name  = "Zeek Instances"
-  vault = data.onepassword_vault.op_homelab.name
-}
-
 provider "vsphere" {
   user                 = data.onepassword_item_login.vcenter.username
   password             = data.onepassword_item_login.vcenter.password
@@ -44,35 +20,55 @@ provider "dns" {
   version = "2.2"
 }
 
-module "zeek_servers" {
-  source           = "../terraform-vsphere-vm"
-  vsphere_network  = "vlan14-servers"
-  vsphere_template = "centos7-2020-04-16"
-  node_count       = var.vm_count
-  node_initial_key = [for field in [for section in data.onepassword_item_login.workstation.section : section if section["name"] == "Public"][0].field : field if field["name"] == "ssh_public_key"][0]["string"]
-  node_name        = var.vm_name
-  node_domain_name = var.vm_domain_name
-  node_prefix      = var.vm_prefix
-  node_ips = [
-    "172.21.14.181/24",
-    "172.21.14.182/24",
-    "172.21.14.183/24"
-  ]
-  node_gateway            = "172.21.14.1"
+module "servers" {
+  source                  = "github.com/chrisbalmer/terraform-vsphere-vm?ref=0.2"
+  vsphere_network         = var.vm_network
+  vsphere_template        = var.vm_template
+  node_count              = var.vm_count
+  node_initial_key        = [for field in [for section in data.onepassword_item_login.workstation.section : section if section["name"] == "Public"][0].field : field if field["name"] == "ssh_public_key"][0]["string"]
+  node_name               = var.vm_name
+  node_domain_name        = var.vm_domain_name
+  node_prefix             = var.vm_prefix
+  node_ips                = var.vm_ip_addresses
+  node_gateway            = var.vm_gateway
   cloud_init              = true
   cloud_init_custom       = false
-  cloud_config_template   = "centos-cloud-config.tpl"
-  metadata_template       = "centos-metadata.tpl"
-  network_config_template = "centos-network-config.tpl"
-  cloud_user              = data.onepassword_item_login.zeek.username
-  cloud_pass              = data.onepassword_item_login.zeek.password
+  cloud_config_template   = var.cloud_config_template
+  metadata_template       = var.metadata_template
+  network_config_template = var.network_config_template
+  cloud_user              = data.onepassword_item_login.vm.username
+  cloud_pass              = data.onepassword_item_login.vm.password
 }
 
-resource "ansible_host" "zeek_servers" {
+data "onepassword_vault" "op_homelab" {
+  name = var.op_vault
+}
+
+data "onepassword_item_login" "vcenter" {
+  name  = var.op_vcenter_login
+  vault = data.onepassword_vault.op_homelab.name
+}
+
+data "onepassword_item_login" "ipa" {
+  name  = var.op_ipa_login
+  vault = data.onepassword_vault.op_homelab.name
+}
+
+data "onepassword_item_login" "workstation" {
+  name  = var.op_workstation_login
+  vault = data.onepassword_vault.op_homelab.name
+}
+
+data "onepassword_item_login" "vm" {
+  name  = var.op_vm_login
+  vault = data.onepassword_vault.op_homelab.name
+}
+
+resource "ansible_host" "servers" {
   count              = var.vm_count
-  inventory_hostname = "${module.zeek_servers.vm_name[count.index]}.${var.vm_domain_name}"
-  groups             = ["zeek"]
+  inventory_hostname = "${module.servers.vm_name[count.index]}.${var.vm_domain_name}"
+  groups             = var.ansible_groups
   vars = {
-    ansible_user = data.onepassword_item_login.zeek.username
+    ansible_user = data.onepassword_item_login.vm.username
   }
 }
