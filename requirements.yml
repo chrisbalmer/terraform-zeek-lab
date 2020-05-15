@@ -1,0 +1,5 @@
+---
+- name: chrisbalmer.cloud-growpart
+  scm: git
+  src: git+https://github.com/chrisbalmer/ansible-role-cloud-growpart.git
+  version: 0.1.1

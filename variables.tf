@@ -3,11 +3,48 @@ variable "op_vm_login" {
   default     = "Zeek Instances"
 }
 
-variable "ansible_groups" {
-  description = "Ansible groups for the VMs."
+variable "manager_groups" {
+  description = "Ansible groups for the manager VMs."
   default = [
-    "zeek"
+    "zeek",
+    "zeek_manager"
   ]
+}
+
+variable "worker_groups" {
+  description = "Ansible groups for the worker VMs."
+  default = [
+    "zeek",
+    "zeek_worker"
+  ]
+}
+
+variable "worker_interface" {
+  default = "ens192"
+}
+
+variable "worker_count" {
+  description = "How many VMs of this type to create."
+  default     = "3"
+}
+
+variable "worker_name" {
+  default = "zeekwrkr"
+}
+variable "worker_ip_addresses" {
+  default = [
+    "172.21.14.182/24",
+    "172.21.14.183/24",
+    "172.21.14.184/24"
+  ]
+}
+variable "worker_gateway" {
+  default = "172.21.14.1"
+}
+
+variable "worker_networks" {
+  description = "The virtual networks to connect to in vSphere."
+  default     = ["vlan14-servers", "dpg-trunk-zeek"]
 }
 
 variable "vsphere_server" {
@@ -17,7 +54,7 @@ variable "vsphere_server" {
 
 variable "vm_count" {
   description = "How many VMs of this type to create."
-  default     = "3"
+  default     = "1"
 }
 
 variable "vm_prefix" {
@@ -32,15 +69,13 @@ variable "vm_name" {
 
 variable "vm_network" {
   description = "The virtual network to connect to in vSphere."
-  default     = "vlan14-servers"
+  default     = ["vlan14-servers", "dpg-trunk-zeek"]
 }
 
 variable "vm_ip_addresses" {
   description = "IP addresses to assign to the VMs."
   default = [
-    "172.21.14.181/24",
-    "172.21.14.182/24",
-    "172.21.14.183/24"
+    "172.21.14.181/24"
   ]
 }
 

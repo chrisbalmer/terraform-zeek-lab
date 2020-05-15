@@ -1,5 +1,60 @@
-- name: Zeek
-  hosts: all
+- name: Zeek Manager SSH Setup
+  hosts: zeek_manager
+  become: yes
   tasks:
-    - name: Test
-      ping:
+    - name: Create SSH folder
+      file:
+        path: /root/.ssh
+        mode: 0700
+        state: directory
+    - name: Configure SSH key for root
+      openssh_keypair:
+        path: /root/.ssh/id_rsa
+        size: 4096
+        mode: 0600
+      register: manager_key
+    # TODO Move yum packages to variable
+    - name: "{{ ansible_os_family }} | Install Prerequisites"
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - rsync
+        - libpcap
+
+- name: Zeek Worker SSH Setup
+  hosts: zeek_worker
+  become: yes
+  tasks:
+    - name: Create SSH folder
+      file:
+        path: /root/.ssh
+        mode: 0700
+        state: directory
+    - name: Add Manager Key to Authorized Keys
+      lineinfile:
+        create: yes
+        line: "{{ hostvars[item]['manager_key']['public_key'] }}"
+        mode: 0600
+        path: "/root/.ssh/authorized_keys"
+      with_items: "{{ groups['zeek_manager'] }}"
+    # TODO Move yum packages to variable
+    - name: "{{ ansible_os_family }} | Install Prerequisites"
+      yum:
+        name: "{{ item }}"
+        state: latest
+      with_items:
+        - rsync
+        - libpcap
+
+- name: Zeek Setup
+  hosts: zeek_manager
+  become: yes
+  pre_tasks:
+    - name: Build Worker List
+      set_fact:
+        zeek_workers: '{{ zeek_workers|default([]) + [{ "name": item, "interface": hostvars[item]["zeek_interface"] }] }}'
+      with_items: "{{ groups['zeek_worker'] }}"
+  roles:
+    #- chrisbalmer.cloud-growpart
+    - ../ansible-role-zeek
