@@ -31,23 +31,8 @@
         path: "/root/.ssh/authorized_keys"
       with_items: "{{ groups['zeek_manager'] }}"
 
-- name: Zeek Prerequisites Setup
-  hosts: all
-  become: yes
-  vars:
-    required_packages:
-      - rsync
-      - libpcap
-      - python3
-  tasks:
-    # TODO Move yum packages to variable
-    - name: "{{ ansible_os_family }} | Install Prerequisites"
-      yum:
-        name: "{{ required_packages }}"
-        state: latest
-
 - name: Zeek Setup
-  hosts: zeek_manager
+  hosts: all
   become: yes
   pre_tasks:
     - name: Build Worker List
@@ -82,9 +67,5 @@
 - name: SplunkForwarder Setup for Workers
   hosts: zeek_worker
   become: yes
-  vars:
-    log_directories:
-      - path: /var/log
-      - path: /etc/
   roles:
     - ../ansible-role-splunkforwarder
