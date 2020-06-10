@@ -55,6 +55,37 @@
       set_fact:
         zeek_workers: '{{ zeek_workers|default([]) + [{ "name": item, "interface": hostvars[item]["zeek_interface"] }] }}'
       with_items: "{{ groups['zeek_worker'] }}"
+    - name: Configure known_hosts
+      known_hosts:
+        path: /root/.ssh/known_hosts
+        key: "{{ item }},{{ hostvars[item]['ansible_default_ipv4']['address'] }} ecdsa-sha2-nistp256 {{ hostvars[item]['ansible_ssh_host_key_ecdsa_public'] }}"
+        name: "{{ item }}"
+        state: present
+      with_items: "{{ groups['zeek_worker'] }}"
   roles:
     #- chrisbalmer.cloud-growpart
     - ../ansible-role-zeek
+
+- name: SplunkForwarder Setup for Manager
+  hosts: zeek_manager
+  become: yes
+  vars:
+    log_directories:
+      - path: /opt/zeek/logs/
+        mask: no_mask
+      - path: /opt/zeek/spool/
+        mask: no_mask
+      - path: /var/log
+      - path: /etc/
+  roles:
+    - ../ansible-role-splunkforwarder
+
+- name: SplunkForwarder Setup for Workers
+  hosts: zeek_worker
+  become: yes
+  vars:
+    log_directories:
+      - path: /var/log
+      - path: /etc/
+  roles:
+    - ../ansible-role-splunkforwarder

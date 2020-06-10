@@ -25,7 +25,7 @@ terraform {
 
   backend "s3" {
     bucket                      = "terraform"
-    key                         = "labs/zeek"
+    key                         = "ops/zeek"
     region                      = "us-east-1"
     endpoint                    = "https://nas.balmerfamilyfarm.com:9000"
     profile                     = "nas"
@@ -59,8 +59,7 @@ provider "dns" {
 }
 
 module "servers" {
-  #source                  = "github.com/chrisbalmer/terraform-vsphere-vm?ref=0.2"
-  source                  = "../terraform-vsphere-vm/"
+  source                  = "github.com/chrisbalmer/terraform-vsphere-vm?ref=0.4"
   vsphere_network         = var.vm_network
   vsphere_template        = var.vm_template
   node_count              = var.vm_count
@@ -80,12 +79,13 @@ module "servers" {
 }
 
 module "workers" {
-  source                  = "github.com/chrisbalmer/terraform-vsphere-vm?ref=0.3"
+  source                  = "github.com/chrisbalmer/terraform-vsphere-vm?ref=0.4"
   vsphere_network         = var.worker_networks
   vsphere_template        = var.vm_template
   node_count              = var.worker_count
   node_initial_key        = [for field in [for section in data.onepassword_item_login.workstation.section : section if section["name"] == "Public"][0].field : field if field["name"] == "ssh_public_key"][0]["string"]
   node_name               = var.worker_name
+  node_memory             = var.worker_memory
   node_domain_name        = var.vm_domain_name
   node_prefix             = var.vm_prefix
   node_ips                = var.worker_ip_addresses

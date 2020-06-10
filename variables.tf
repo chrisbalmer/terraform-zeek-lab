@@ -29,8 +29,13 @@ variable "worker_count" {
 }
 
 variable "worker_name" {
-  default = "zeekwrkr"
+  default = "zeekwrk"
 }
+
+variable "worker_memory" {
+  default = 2048
+}
+
 variable "worker_ip_addresses" {
   default = [
     "172.21.14.182/24",
@@ -59,12 +64,12 @@ variable "vm_count" {
 
 variable "vm_prefix" {
   description = "The prefix for the full VM names, i.e. dev, prod, etc"
-  default     = "test"
+  default     = "ops"
 }
 
 variable "vm_name" {
   description = "The name of the VMs, i.e. worker, master, etc"
-  default     = "zeek"
+  default     = "zeekmgr"
 }
 
 variable "vm_network" {
@@ -91,7 +96,7 @@ variable "vm_domain_name" {
 
 variable "vm_template" {
   description = "The template to clone for the VMs."
-  default     = "centos7-2020-04-16"
+  default     = "centos8-2020-06-09"
 }
 
 variable "cloud_config_template" {
