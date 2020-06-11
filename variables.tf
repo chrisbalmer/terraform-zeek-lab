@@ -96,7 +96,7 @@ variable "vm_domain_name" {
 
 variable "vm_template" {
   description = "The template to clone for the VMs."
-  default     = "centos8-2020-06-09"
+  default     = "centos8-2020-06-10"
 }
 
 variable "cloud_config_template" {

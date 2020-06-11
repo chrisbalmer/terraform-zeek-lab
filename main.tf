@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     ansible = {
-      source  = "github.com/nbering/terraform-provider-ansible"
+      #source  = "github.com/nbering/terraform-provider-ansible"
       version = "v1.0.3"
     }
 
@@ -10,7 +10,7 @@ terraform {
     }
 
     onepassword = {
-      source  = "github.com/anasinnyk/terraform-provider-1password"
+      #source  = "github.com/anasinnyk/terraform-provider-1password"
       version = "0.5"
     }
 
@@ -135,7 +135,6 @@ resource "ansible_host" "workers" {
   groups             = var.worker_groups
   vars = {
     zeek_interface = var.worker_interface
-    zeek_role      = "worker"
   }
 }
 
@@ -153,6 +152,5 @@ resource "ansible_group" "zeek_manager" {
     zeek_node_logger  = "${module.servers.vm_name[0]}.${var.vm_domain_name}"
     zeek_node_manager = "${module.servers.vm_name[0]}.${var.vm_domain_name}"
     zeek_node_proxy   = "${module.servers.vm_name[0]}.${var.vm_domain_name}"
-    zeek_role         = "manager"
   }
 }
